@@ -8,3 +8,7 @@
 .AGENTS.md
 .CLAUDE.md
 docs/
+.sisyphus
+task_plan.md
+findings.md
+progress.md
