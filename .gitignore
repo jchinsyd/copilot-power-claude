@@ -1,3 +1,7 @@
 
 #secret
 .env
+
+# AI
+.claude
+.opencode
