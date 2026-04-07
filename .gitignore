@@ -5,8 +5,8 @@
 # AI
 .claude
 .opencode
-.AGENTS.md
-.CLAUDE.md
+AGENTS.md
+CLAUDE.md
 docs/
 .sisyphus
 task_plan.md
