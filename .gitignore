@@ -1,6 +1,8 @@
 
 #secret
 .env
+dist
+node_modules
 
 # AI
 .claude
