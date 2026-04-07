@@ -39,7 +39,9 @@ export async function runServer(options: RunServerOptions): Promise<void> {
   }
 
   state.manualApprove = options.manual
-  state.rateLimitSeconds = options.rateLimit
+  const envRateLimit = process.env.RATE_LIMIT_MS
+  const rateLimitFromEnv = envRateLimit !== undefined ? Number(envRateLimit) : undefined
+  state.rateLimitMs = (options.rateLimit ?? rateLimitFromEnv) || undefined
   state.rateLimitWait = options.rateLimitWait
   state.showToken = options.showToken
 
