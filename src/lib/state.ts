@@ -7,7 +7,7 @@ export interface State {
   manualApprove: boolean
   rateLimitWait: boolean
   showToken: boolean
-  rateLimitSeconds?: number
+  rateLimitMs?: number
   lastRequestTimestamp?: number
 }
 
