@@ -1,0 +1,18 @@
+services:
+  copilot-power-claude:
+    build: .
+    container_name: copilot-power-claude
+    ports:
+      - "7788:7788"
+    # command removed - uses entrypoint.sh which handles CLI arguments
+    environment:
+      - GH_TOKEN
+      - APP_DIR
+    volumes:
+      - copilot-power-claude-data:/root/.local/share/copilot-power-claude-api
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+volumes:
+  copilot-power-claude-data:
