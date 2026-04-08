@@ -1,6 +1,7 @@
 import type { Context } from "hono"
 import { streamSSE } from "hono/streaming"
 import { state } from "../../lib/state"
+import { resolveModelWithProvider, isProviderEnabled, getProviderAuthToken } from "../../lib/config"
 import {
   createChatCompletions,
   type ChatCompletionChunk,
@@ -18,7 +19,29 @@ import {
 import { translateChunkToAnthropicEvents } from "./stream-translation"
 
 export async function handleCompletion(c: Context) {
-  if (!state.copilotToken) {
+  // Load config and resolve provider
+  const { loadConfig, resolveModelWithProvider, isProviderEnabled } = await import("../../lib/config")
+  await loadConfig()
+
+  const anthropicPayload = await c.req.json<AnthropicMessagesPayload>()
+  const modelWithProvider = anthropicPayload.model || "gpt-4o"
+
+  // Resolve provider from model prefix
+  const { provider, model: resolvedModel } = resolveModelWithProvider(modelWithProvider)
+  console.log(`[Messages] Using model: ${resolvedModel} (provider: ${provider})`)
+
+  // Check if provider is enabled
+  if (!isProviderEnabled(provider)) {
+    return c.json({
+      error: {
+        message: `Provider '${provider}' is not enabled. Please enable it in config.json or use a different provider.`,
+        type: "error",
+      },
+    }, 400)
+  }
+
+  // Check authentication based on provider
+  if (provider === "github-copilot" && !state.copilotToken) {
     console.log("")
     console.log("🔐 Not authenticated. Please login with:")
     console.log("   docker exec -it copilot-power-claude auth")
@@ -31,11 +54,19 @@ export async function handleCompletion(c: Context) {
     }, 401)
   }
 
-  const anthropicPayload = await c.req.json<AnthropicMessagesPayload>()
+  // Check MiniMax auth token
+  if (provider === "minimax" && !getProviderAuthToken("minimax")) {
+    return c.json({
+      error: {
+        message: "MiniMax API key not configured. Please add authToken in config.json.",
+        type: "error",
+      },
+    }, 401)
+  }
 
-  const openAIPayload = translateToOpenAI(anthropicPayload)
+  const openAIPayload = translateToOpenAI(anthropicPayload, resolveModelWithProvider(modelWithProvider).model)
 
-  const response = await createChatCompletions(openAIPayload)
+  const response = await createChatCompletions(openAIPayload, provider)
 
   if (!anthropicPayload.stream) {
     const anthropicResponse = translateToAnthropic(response as any)
@@ -64,9 +95,9 @@ export async function handleCompletion(c: Context) {
   })
 }
 
-export function translateToOpenAI(payload: AnthropicMessagesPayload) {
+export function translateToOpenAI(payload: AnthropicMessagesPayload, resolvedModel?: string) {
   return {
-    model: translateModelName(payload.model),
+    model: translateModelName(resolvedModel || payload.model),
     messages: translateAnthropicMessagesToOpenAI(payload.messages, payload.system),
     max_tokens: payload.max_tokens,
     stop: payload.stop_sequences,

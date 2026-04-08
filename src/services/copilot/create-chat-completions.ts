@@ -1,8 +1,15 @@
 import { copilotBaseUrl, copilotHeaders } from "../../lib/api-config"
 import { HTTPError } from "../../lib/error"
 import { state } from "../../lib/state"
+import { getProviderBaseUrl, getProviderAuthToken } from "../../lib/config"
 
-export const createChatCompletions = async (payload: ChatCompletionsPayload) => {
+export const createChatCompletions = async (payload: ChatCompletionsPayload, provider = "github-copilot") => {
+  // If provider is minimax, use MiniMax API
+  if (provider === "minimax") {
+    return createMinimaxChatCompletions(payload)
+  }
+
+  // Default: GitHub Copilot
   if (!state.copilotToken) throw new Error("Copilot token not found")
 
   const enableVision = payload.messages.some(
@@ -32,11 +39,68 @@ export const createChatCompletions = async (payload: ChatCompletionsPayload) => 
   }
 
   if (payload.stream) {
-    // Return an async iterable that streams the response body
     return createStreamIterable(response)
   }
 
   return (await response.json()) as ChatCompletionResponse
+}
+
+// MiniMax API handler
+async function createMinimaxChatCompletions(payload: ChatCompletionsPayload) {
+  const baseUrl = getProviderBaseUrl("minimax")
+  const authToken = getProviderAuthToken("minimax")
+
+  if (!baseUrl) {
+    throw new Error("MiniMax base URL not configured")
+  }
+  if (!authToken) {
+    throw new Error("MiniMax auth token not configured")
+  }
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": `Bearer ${authToken}`,
+  }
+
+  // Try baseUrl first, then /v1/chat/completions path
+  const urls = [
+    baseUrl,
+    `${baseUrl.replace(/\/anthropic$/, "")}/v1/chat/completions`,
+  ]
+
+  let lastError: Error | null = null
+  for (const url of urls) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      })
+
+      if (response.ok) {
+        if (payload.stream) {
+          return createStreamIterable(response)
+        }
+        return (await response.json()) as ChatCompletionResponse
+      }
+
+      if (response.status === 404) {
+        lastError = new Error(`Got 404 from ${url}`)
+        continue
+      }
+
+      const text = await response.text()
+      throw new HTTPError(`Failed to create MiniMax chat completions (${response.status}): ${text}`, response)
+    } catch (err) {
+      if (err instanceof HTTPError && err.response?.status === 404) {
+        continue
+      }
+      throw err
+    }
+  }
+
+  throw new Error(`All MiniMax endpoint paths failed. Last error: ${lastError?.message}`)
 }
 
 async function* createStreamIterable(response: Response): AsyncGenerator<ChatCompletionChunk> {

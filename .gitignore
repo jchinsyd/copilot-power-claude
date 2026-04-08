@@ -1,6 +1,9 @@
 
 #secret
 .env
+config.json
+
+# modules
 dist
 node_modules
 
