@@ -1,0 +1,13 @@
+{
+  "defaultProvider": "github-copilot",
+  "providers": {
+    "github-copilot": {
+      "enabled": true
+    },
+    "minimax": {
+      "enabled": true,
+      "baseUrl": "https://api.minimax.io/anthropic",
+      "authToken": "YOUR_MINIMAX_API_KEY_HERE"
+    }
+  }
+}

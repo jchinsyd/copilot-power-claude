@@ -7,12 +7,11 @@ services:
     # command removed - uses entrypoint.sh which handles CLI arguments
     environment:
       - GH_TOKEN
-      - APP_DIR
+      - MINIMAX_API_KEY
+      - APP_DIR=/app/data
     volumes:
-      - copilot-power-claude-data:/root/.local/share/copilot-power-claude-api
+      - ./config.json:/app/config.json:ro
+      - ${TOKEN_PATH}:/app/data
     restart: unless-stopped
     stdin_open: true
     tty: true
-
-volumes:
-  copilot-power-claude-data:

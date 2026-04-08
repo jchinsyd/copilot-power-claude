@@ -15,6 +15,49 @@ Users are advised to review the following policies prior to use:
 
 This project is provided "as is" for personal, non-commercial use. Use at your own risk and responsibility.
 
+## Supported Providers
+
+| Provider | Model Prefix | Description |
+|----------|--------------|-------------|
+| GitHub Copilot | `github-copilot/` | Default provider using GitHub Copilot API |
+| MiniMax | `minimax/` | Alternative provider via MiniMax API |
+
+Select provider by prefixing your model with the provider name (e.g., `minimax/MiniMax-M2.5` or `github-copilot/gpt-4o`).
+
+## Configuration
+
+### config.json
+
+Store non-sensitive provider configuration in `config.json`:
+
+```json
+{
+  "defaultProvider": "github-copilot",
+  "providers": {
+    "github-copilot": {
+      "enabled": true
+    },
+    "minimax": {
+      "enabled": true,
+      "baseUrl": "https://api.minimax.io/anthropic"
+    }
+  }
+}
+```
+
+### Environment Variables (`.env`)
+
+Store sensitive API keys in `.env` (not committed to git):
+
+```bash
+# Required for GitHub Copilot (used for initial auth)
+GH_TOKEN=ghp_xxxxxxxxxxxx
+
+# Required for MiniMax provider
+MINIMAX_API_KEY=mmx_xxxxxxxxxxxx
+```
+
+See `.env.example` for all available environment variables.
 
 ## Quick Start
 
@@ -31,10 +74,10 @@ docker logs -f copilot-power-claude
 ```bash
 export ANTHROPIC_BASE_URL="http://localhost:7788"
 export ANTHROPIC_AUTH_TOKEN="dummy"
-export ANTHROPIC_MODEL="gpt-4o"
-export ANTHROPIC_DEFAULT_SONNET_MODEL="gpt-4o"
-export ANTHROPIC_SMALL_FAST_MODEL="gpt-4o"
-export ANTHROPIC_DEFAULT_HAIKU_MODEL="gpt-4o"
+export ANTHROPIC_MODEL="minimax/MiniMax-M2.5"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="github-copilot/gpt-4o"
+export ANTHROPIC_SMALL_FAST_MODEL="github-copilot/gpt-4o"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="github-copilot/"
 export DISABLE_NON_ESSENTIAL_MODEL_CALLS="1"
 export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1"
 ```
@@ -125,7 +168,6 @@ docker compose run --rm copilot-power-claude start --claude-code
 |--------|-------|-------------|---------|
 | `--port` | `-p` | Port to listen on | 7788 |
 | `--verbose` | `-v` | Enable verbose logging | - |
-| `--github-token` | `-g` | GitHub token directly | - |
 | `--claude-code` | `-c` | Generate Claude Code config | - |
 | `--account-type` | `-a` | Account type (individual/business/enterprise) | individual |
 | `--manual` | - | Enable manual request approval | - |
@@ -133,3 +175,17 @@ docker compose run --rm copilot-power-claude start --claude-code
 | `--wait` | `-w` | Wait instead of error when rate limit hit | - |
 | `--show-token` | - | Show GitHub and Copilot tokens | - |
 | `--proxy-env` | - | Initialize proxy from environment variables | - |
+
+## Running
+
+```bash
+# Create .env file (see Configuration section above)
+cp .env.example .env
+# Edit .env with your API keys
+
+# Build and start
+docker compose up -d --build
+
+# View logs
+docker logs -f copilot-power-claude
+```

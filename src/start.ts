@@ -6,6 +6,7 @@ import { serve, type ServerHandler } from "srvx"
 import { PATHS, ensurePaths } from "./lib/paths"
 import { initProxyFromEnv } from "./lib/proxy"
 import { state } from "./lib/state"
+import { loadConfig } from "./lib/config"
 import { setupCopilotToken, setupGitHubToken } from "./lib/token"
 import { cacheModels, cacheVSCodeVersion } from "./lib/utils"
 import { server } from "./server"
@@ -32,6 +33,9 @@ export async function runServer(options: RunServerOptions): Promise<void> {
     consola.level = 5
     consola.info("Verbose logging enabled")
   }
+
+  // Load config from config.json
+  await loadConfig()
 
   state.accountType = options.accountType
   if (options.accountType !== "individual") {
