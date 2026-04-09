@@ -8,6 +8,7 @@ services:
     environment:
       - GH_TOKEN
       - MINIMAX_API_KEY
+      - DEEPSEEK_API_KEY
       - APP_DIR=/app/data
     volumes:
       - ./config.json:/app/config.json:ro

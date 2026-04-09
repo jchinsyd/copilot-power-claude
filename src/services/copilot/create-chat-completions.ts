@@ -9,6 +9,11 @@ export const createChatCompletions = async (payload: ChatCompletionsPayload, pro
     return createMinimaxChatCompletions(payload)
   }
 
+  // If provider is deepseek, use DeepSeek API
+  if (provider === "deepseek") {
+    return createDeepSeekChatCompletions(payload)
+  }
+
   // Default: GitHub Copilot
   if (!state.copilotToken) throw new Error("Copilot token not found")
 
@@ -101,6 +106,72 @@ async function createMinimaxChatCompletions(payload: ChatCompletionsPayload) {
   }
 
   throw new Error(`All MiniMax endpoint paths failed. Last error: ${lastError?.message}`)
+}
+
+// DeepSeek API handler
+async function createDeepSeekChatCompletions(payload: ChatCompletionsPayload) {
+  const baseUrl = getProviderBaseUrl("deepseek")
+  const authToken = getProviderAuthToken("deepseek")
+
+  if (!baseUrl) {
+    throw new Error("DeepSeek base URL not configured")
+  }
+  if (!authToken) {
+    throw new Error("DeepSeek auth token not configured")
+  }
+
+  // Apply default model if not specified
+  const model = payload.model || "deepseek-chat"
+
+  // Cap max_tokens at 8192 for DeepSeek API (valid range is [1, 8192])
+  const maxTokens = payload.max_tokens ? Math.min(payload.max_tokens, 8192) : undefined
+
+  const updatedPayload = { ...payload, model, max_tokens: maxTokens }
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": `Bearer ${authToken}`,
+  }
+
+  // Try baseUrl first, then /v1/chat/completions path
+  const urls = [
+    baseUrl,
+    `${baseUrl.replace(/\/anthropic$/, "")}/v1/chat/completions`,
+  ]
+
+  let lastError: Error | null = null
+  for (const url of urls) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(updatedPayload),
+      })
+
+      if (response.ok) {
+        if (payload.stream) {
+          return createStreamIterable(response)
+        }
+        return (await response.json()) as ChatCompletionResponse
+      }
+
+      if (response.status === 404) {
+        lastError = new Error(`Got 404 from ${url}`)
+        continue
+      }
+
+      const text = await response.text()
+      throw new HTTPError(`Failed to create DeepSeek chat completions (${response.status}): ${text}`, response)
+    } catch (err) {
+      if (err instanceof HTTPError && err.response?.status === 404) {
+        continue
+      }
+      throw err
+    }
+  }
+
+  throw new Error(`All DeepSeek endpoint paths failed. Last error: ${lastError?.message}`)
 }
 
 async function* createStreamIterable(response: Response): AsyncGenerator<ChatCompletionChunk> {

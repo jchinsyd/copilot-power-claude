@@ -46,6 +46,16 @@ export async function handleCompletion(c: Context) {
     }, 401)
   }
 
+  // Check DeepSeek auth token
+  if (provider === "deepseek" && !getProviderAuthToken("deepseek")) {
+    return c.json({
+      error: {
+        message: "DeepSeek API key not configured. Please set DEEPSEEK_API_KEY env var or add authToken in config.json.",
+        type: "error",
+      },
+    }, 401)
+  }
+
   // Rate limiting
   if (state.rateLimitMs && state.rateLimitMs > 0) {
     const now = Date.now()
