@@ -50,10 +50,7 @@ Store non-sensitive provider configuration in `config.json`:
 Store sensitive API keys in `.env` (not committed to git):
 
 ```bash
-# Required for GitHub Copilot (used for initial auth)
-GH_TOKEN=ghp_xxxxxxxxxxxx
-
-# Required for MiniMax provider
+# Required for MiniMax provider (optional)
 MINIMAX_API_KEY=mmx_xxxxxxxxxxxx
 ```
 
@@ -88,11 +85,11 @@ Option 2: create settings.json in .claude (project)
   "env": {
     "ANTHROPIC_BASE_URL": "http://localhost:7788",
     "ANTHROPIC_AUTH_TOKEN": "dummy",
-    "ANTHROPIC_MODEL": "gpt-4.1",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4.6",
-    "ANTHROPIC_SMALL_FAST_MODEL": "gpt-4.1",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4.6",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "gpt-4.1",
+    "ANTHROPIC_MODEL": "github-copilot/gpt-4.1",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "github-copilot/claude-sonnet-4.6",
+    "ANTHROPIC_SMALL_FAST_MODEL": "github-copilot/gpt-4.1",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "github-copilot/claude-opus-4.6",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "github-copilot/gpt-4.1",
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
   },
