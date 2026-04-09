@@ -86,6 +86,11 @@ function detectProviderByModel(model: string): string | null {
     return "minimax"
   }
 
+  // DeepSeek models
+  if (lowerModel.includes("deepseek")) {
+    return "deepseek"
+  }
+
   // Add other providers here as needed
   // Example: if (lowerModel.includes("gpt-4")) return "openai"
 
@@ -96,6 +101,9 @@ export function getProviderAuthToken(provider: string): string | undefined {
   // Check env first (preferred for secrets)
   if (provider === "minimax") {
     return process.env.MINIMAX_API_KEY || configState?.providers[provider]?.authToken
+  }
+  if (provider === "deepseek") {
+    return process.env.DEEPSEEK_API_KEY || configState?.providers[provider]?.authToken
   }
   return configState?.providers[provider]?.authToken
 }

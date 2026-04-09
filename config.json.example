@@ -6,8 +6,11 @@
     },
     "minimax": {
       "enabled": true,
-      "baseUrl": "https://api.minimax.io/anthropic",
-      "authToken": "YOUR_MINIMAX_API_KEY_HERE"
+      "baseUrl": "https://api.minimax.io/anthropic"
+    },
+    "deepseek": {
+      "enabled": true,
+      "baseUrl": "https://api.deepseek.com/anthropic"
     }
   }
 }

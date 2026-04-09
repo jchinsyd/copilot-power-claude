@@ -23,6 +23,12 @@ export async function handleCompletion(c: Context) {
   const { loadConfig, resolveModelWithProvider, isProviderEnabled } = await import("../../lib/config")
   await loadConfig()
 
+  // Get beta query param
+  const beta = c.req.query("beta") === "true"
+  if (beta) {
+    console.log(`[Messages] Beta mode enabled`)
+  }
+
   const anthropicPayload = await c.req.json<AnthropicMessagesPayload>()
   const modelWithProvider = anthropicPayload.model || "gpt-4o"
 
@@ -59,6 +65,16 @@ export async function handleCompletion(c: Context) {
     return c.json({
       error: {
         message: "MiniMax API key not configured. Please add authToken in config.json.",
+        type: "error",
+      },
+    }, 401)
+  }
+
+  // Check DeepSeek auth token
+  if (provider === "deepseek" && !getProviderAuthToken("deepseek")) {
+    return c.json({
+      error: {
+        message: "DeepSeek API key not configured. Please add authToken in config.json.",
         type: "error",
       },
     }, 401)

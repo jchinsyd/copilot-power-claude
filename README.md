@@ -21,8 +21,9 @@ This project is provided "as is" for personal, non-commercial use. Use at your o
 |----------|--------------|-------------|
 | GitHub Copilot | `github-copilot/` | Default provider using GitHub Copilot API |
 | MiniMax | `minimax/` | Alternative provider via MiniMax API |
+| DeepSeek | `deepseek/` | Alternative provider via Deepseek API |
 
-Select provider by prefixing your model with the provider name (e.g., `minimax/MiniMax-M2.5` or `github-copilot/gpt-4o`).
+Select provider by prefixing your model with the provider name (e.g., `minimax/MiniMax-M2.5` or `github-copilot/gpt-4o` or `deepseek/deepseek-chat`).
 
 ## Configuration
 
